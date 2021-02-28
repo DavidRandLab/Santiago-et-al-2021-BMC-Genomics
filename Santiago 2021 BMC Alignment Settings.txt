@@ -1,0 +1,50 @@
+
+#Running FastQC
+#module load fastqc/0.10.1
+
+#does fastqc on the zipped file and puts results in the specified folder
+#fastqc $zipped -o $Shortcut_Home"Output_Files/FastQC/" -t 16
+
+#Running Tophat
+
+#load programs
+module load samtools/1.3.1
+module load tophat/2.1.1
+module load bowtie2/2.2.9
+module load R/3.3.1 
+module load cufflinks/2.2.1
+
+#run tophat
+tophat -p 8 -i 30 -I 20000 --segment-length 25 -G "dm3ensembl.gtf" -o "OO1tophatv2.out" dm3 "/Sequence_Files_from_Genewiz/YA1610191_R1/OO1_S118_L008_R1_001.fastq"
+
+cd $tophatout
+
+mv accepted_hits.bam $renamed_bam
+
+samtools index -b "OO1_accepted_hitsv2.bam"
+
+
+
+
+
+#Running HTSeq
+
+#cd /users/jcsantia/data/jcsantia/Deans_Award_RNAseq_Files/Pipeline_Shell_Scripts
+
+#HTinfile="(\"""$tophatout/""$renamed_bam""\")"
+#HToutfile="(\"""$tophatout/""$Sample_Name""_Count_Table.txt""\")"
+
+#echo "infile="$HTinfile> HTSeq_Code.py
+
+#echo "outfile="$HToutfile >> HTSeq_Code.py
+
+#echo "annotation_file=""(\"""$annotation_file""\")">>HTSeq_Code.py
+
+#cat HTSeq_Template.py>>HTSeq_Code.py
+
+#python HTSeq_Code.py 
+
+#zip the files back up
+#cd $All_Sample_Folder
+
+gzip $unzipped
