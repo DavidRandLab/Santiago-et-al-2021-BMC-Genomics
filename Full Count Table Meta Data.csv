@@ -1,43 +1,43 @@
-Sample,Mito,Treat,Time,Replicate,Group
-OO01,OreR,Control,Starved,1,OO0HC
-OO02,OreR,Control,Starved,2,OO0HC
-OO03,OreR,Control,Starved,3,OO0HC
-OO04,OreR,Control,1 Hour,1,OO1HC
-OO05,OreR,Control,1 Hour,2,OO1HC
-OO06,OreR,Control,1 Hour,3,OO1HC
-OO07,OreR,Rapa,1 Hour,1,OO1HR
-OO08,OreR,Rapa,1 Hour,2,OO1HR
-OO09,OreR,Rapa,1 Hour,3,OO1HR
-OO10,OreR,Control,2 Hour,1,OO2HC
-OO11,OreR,Control,2 Hour,2,OO2HC
-OO12,OreR,Control,2 Hour,3,OO2HC
-OO13,OreR,Rapa,2 Hour,1,OO2HR
-OO14,OreR,Rapa,2 Hour,2,OO2HR
-OO15,OreR,Rapa,2 Hour,3,OO2HR
-OO16,OreR,Control,4 Hour,1,OO4HC
-OO17,OreR,Control,4 Hour,2,OO4HC
-OO18,OreR,Control,4 Hour,3,OO4HC
-OO19,OreR,Rapa,4 Hour,1,OO4HR
-OO20,OreR,Rapa,4 Hour,2,OO4HR
-OO21,OreR,Rapa,4 Hour,3,OO4HR
-SO22,sm21,Control,Starved,1,SO0HC
-SO23,sm21,Control,Starved,2,SO0HC
-SO24,sm21,Control,Starved,3,SO0HC
-SO25,sm21,Control,1 Hour,1,SO1HC
-SO26,sm21,Control,1 Hour,2,SO1HC
-SO27,sm21,Control,1 Hour,3,SO1HC
-SO28,sm21,Rapa,1 Hour,1,SO1HR
-SO29,sm21,Rapa,1 Hour,2,SO1HR
-SO30,sm21,Rapa,1 Hour,3,SO1HR
-SO31,sm21,Control,2 Hour,1,SO2HC
-SO32,sm21,Control,2 Hour,2,SO2HC
-SO33,sm21,Control,2 Hour,3,SO2HC
-SO34,sm21,Rapa,2 Hour,1,SO2HR
-SO35,sm21,Rapa,2 Hour,2,SO2HR
-SO36,sm21,Rapa,2 Hour,3,SO2HR
-SO37,sm21,Control,4 Hour,1,SO4HC
-SO38,sm21,Control,4 Hour,2,SO4HC
-SO39,sm21,Control,4 Hour,3,SO4HC
-SO40,sm21,Rapa,4 Hour,1,SO4HR
-SO41,sm21,Rapa,4 Hour,2,SO4HR
-SO42,sm21,Rapa,4 Hour,3,SO4HR
+"","Sample","Mito","Treat","Time","Replicate","Group","LibraryID","trim"
+"OO01","OO01","OreR","Control","Starved",1,"OO0HC","OO0HC 1","remove"
+"OO02","OO02","OreR","Control","Starved",2,"OO0HC","OO0HC 2","keep"
+"OO03","OO03","OreR","Control","Starved",3,"OO0HC","OO0HC 3","keep"
+"OO04","OO04","OreR","Control","1 Hour",1,"OO1HC","OO1HC 1","keep"
+"OO05","OO05","OreR","Control","1 Hour",2,"OO1HC","OO1HC 2","remove"
+"OO06","OO06","OreR","Control","1 Hour",3,"OO1HC","OO1HC 3","keep"
+"OO07","OO07","OreR","Rapa","1 Hour",1,"OO1HR","OO1HR 1","remove"
+"OO08","OO08","OreR","Rapa","1 Hour",2,"OO1HR","OO1HR 2","keep"
+"OO09","OO09","OreR","Rapa","1 Hour",3,"OO1HR","OO1HR 3","keep"
+"OO10","OO10","OreR","Control","2 Hour",1,"OO2HC","OO2HC 1","keep"
+"OO11","OO11","OreR","Control","2 Hour",2,"OO2HC","OO2HC 2","remove"
+"OO12","OO12","OreR","Control","2 Hour",3,"OO2HC","OO2HC 3","keep"
+"OO13","OO13","OreR","Rapa","2 Hour",1,"OO2HR","OO2HR 1","keep"
+"OO14","OO14","OreR","Rapa","2 Hour",2,"OO2HR","OO2HR 2","remove"
+"OO15","OO15","OreR","Rapa","2 Hour",3,"OO2HR","OO2HR 3","keep"
+"OO16","OO16","OreR","Control","4 Hour",1,"OO4HC","OO4HC 1","keep"
+"OO17","OO17","OreR","Control","4 Hour",2,"OO4HC","OO4HC 2","remove"
+"OO18","OO18","OreR","Control","4 Hour",3,"OO4HC","OO4HC 3","keep"
+"OO19","OO19","OreR","Rapa","4 Hour",1,"OO4HR","OO4HR 1","keep"
+"OO20","OO20","OreR","Rapa","4 Hour",2,"OO4HR","OO4HR 2","remove"
+"OO21","OO21","OreR","Rapa","4 Hour",3,"OO4HR","OO4HR 3","keep"
+"SO22","SO22","sm21","Control","Starved",1,"SO0HC","SO0HC 1","keep"
+"SO23","SO23","sm21","Control","Starved",2,"SO0HC","SO0HC 2","remove"
+"SO24","SO24","sm21","Control","Starved",3,"SO0HC","SO0HC 3","keep"
+"SO25","SO25","sm21","Control","1 Hour",1,"SO1HC","SO1HC 1","remove"
+"SO26","SO26","sm21","Control","1 Hour",2,"SO1HC","SO1HC 2","keep"
+"SO27","SO27","sm21","Control","1 Hour",3,"SO1HC","SO1HC 3","keep"
+"SO28","SO28","sm21","Rapa","1 Hour",1,"SO1HR","SO1HR 1","remove"
+"SO29","SO29","sm21","Rapa","1 Hour",2,"SO1HR","SO1HR 2","keep"
+"SO30","SO30","sm21","Rapa","1 Hour",3,"SO1HR","SO1HR 3","keep"
+"SO31","SO31","sm21","Control","2 Hour",1,"SO2HC","SO2HC 1","remove"
+"SO32","SO32","sm21","Control","2 Hour",2,"SO2HC","SO2HC 2","keep"
+"SO33","SO33","sm21","Control","2 Hour",3,"SO2HC","SO2HC 3","keep"
+"SO34","SO34","sm21","Rapa","2 Hour",1,"SO2HR","SO2HR 1","keep"
+"SO35","SO35","sm21","Rapa","2 Hour",2,"SO2HR","SO2HR 2","remove"
+"SO36","SO36","sm21","Rapa","2 Hour",3,"SO2HR","SO2HR 3","keep"
+"SO37","SO37","sm21","Control","4 Hour",1,"SO4HC","SO4HC 1","remove"
+"SO38","SO38","sm21","Control","4 Hour",2,"SO4HC","SO4HC 2","keep"
+"SO39","SO39","sm21","Control","4 Hour",3,"SO4HC","SO4HC 3","keep"
+"SO40","SO40","sm21","Rapa","4 Hour",1,"SO4HR","SO4HR 1","keep"
+"SO41","SO41","sm21","Rapa","4 Hour",2,"SO4HR","SO4HR 2","remove"
+"SO42","SO42","sm21","Rapa","4 Hour",3,"SO4HR","SO4HR 3","keep"

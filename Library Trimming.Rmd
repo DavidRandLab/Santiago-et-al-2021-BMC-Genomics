@@ -1,0 +1,384 @@
+---
+title: "Library Trimming"
+author: "John Santiago"
+date: "2/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+
+Scatterplots of whole transcriptome libraries reveal significant outlier replicates in several conditions<br />
+MDS plot used to quantify variation between biological replicates<br />
+The 2 biological replicates in each condition with the least amount of variation determined by MDS plot were used in the analyses<br />
+```{r include=F}
+
+library(edgeR)
+
+counts=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Full%20Count%20Table.csv",row.names=1)
+groups=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Full%20Count%20Table%20Meta%20Data.csv")
+row.names(groups)=groups[,1]
+
+##uses the edger function that is defined below (needs to be ran before using) to trim out the genes with low read counts
+x<-DGEList(counts)
+class(x)
+geneid <- rownames(x)
+x$samples=cbind(x$samples,groups)
+
+##at least is the cpm of a gene with 10 reads
+##10/smallest library size=x/1 000 000
+##10 000 000/smallest library size = x = smallest acceptable cpm for a gene to be kept
+atleast=(10000000/min(x$samples$lib.size))
+keep=rowSums(cpm(x)>=atleast)>=3
+y=x[keep, ,keep.lib.sizes=FALSE]
+z <- calcNormFactors(y, method = "TMM") 
+cpmdata=cpm(z)
+groups$LibraryID=paste(groups$Group,groups$Replicate)
+```
+
+OreR;OreR Fasted
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=1
+rep2=2
+rep3=3
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+OreR;OreR 1 Hour Control
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=4
+rep2=5
+rep3=6
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+OreR;OreR 1 Hour Rapa
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=7
+rep2=8
+rep3=9
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+OreR;OreR 2 Hour Control
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=10
+rep2=11
+rep3=12
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+OreR;OreR 2 Hour Rapa
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=13
+rep2=14
+rep3=15
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+OreR;OreR 4 Hour Control
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=16
+rep2=17
+rep3=18
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+OreR;OreR 4 Hour Rapa
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=19
+rep2=20
+rep3=21
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+sm21;OreR Fasted
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=22
+rep2=23
+rep3=24
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+
+sm21;OreR 1 Hour Control
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=25
+rep2=26
+rep3=27
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+sm21;OreR 1 Hour Rapa
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=28
+rep2=29
+rep3=30
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+sm21;OreR 2 Hour Control
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=31
+rep2=32
+rep3=33
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+sm21;OreR 2 Hour Rapa
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=34
+rep2=35
+rep3=36
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+sm21;OreR 4 Hour Control
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=37
+rep2=38
+rep3=39
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+sm21;OreR 4 Hour Rapa
+<br />
+```{r fig.height=3,fig.width=6}
+rep1=40
+rep2=41
+rep3=42
+par(mfrow=c(1,3))
+plot(x=cpmdata[,rep1],y=cpmdata[,rep2],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep2],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep1],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep1],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+plot(x=cpmdata[,rep2],y=cpmdata[,rep3],xlim=c(0,10000),ylim=c(0,10000),cex=.2, xlab=groups[colnames(cpmdata)[rep2],"LibraryID"], ylab=groups[colnames(cpmdata)[rep3],"LibraryID"])
+abline(a=0,b=1,col="red",lty=2)
+
+```
+
+MDS plot used to quantify variation between biological replicates
+
+```{r}
+MDSdata=z$counts
+MDSgroups=groups
+
+lcpm=cpm(MDSdata,log=TRUE)
+colors=factor(groups$Group)
+label=groups$Group
+levels(colors)=c(1:length(levels(colors)))
+
+```
+
+```{r fig.height=10, fig.width=10}
+temp=plotMDS(lcpm, col=as.vector(colors),labels=label,gene.selection="pairwise",top=nrow(lcpm))
+
+```
+
+```{r include=F}
+similarity=temp$distance.matrix
+samples=unique(groups$Group)
+
+similaritytable=groups[,c(6,5)]
+similaritytable$rep1=c(rep(c(1,1,2),14))
+similaritytable$rep2=c(rep(c(2,3,3),14))
+similaritytable$Replicate=c(rep(c("1~2","1~3","2~3"),14))
+similaritytable$distance=0
+i=1
+j=1
+while(i<=length(samples)){
+  coords=groups$Group==samples[i]
+  temp=similarity[coords,coords]
+  similaritytable$distance[j]=temp[2,1]
+  j=j+1
+  similaritytable$distance[j]=temp[3,1]
+  j=j+1
+  similaritytable$distance[j]=temp[3,2]
+  j=j+1
+  i=i+1
+}
+
+tempkeep=similaritytable[similaritytable$Group==samples[1],]
+tempkeep=tempkeep[tempkeep$distance==min(tempkeep$distance),]
+keep=tempkeep
+i=2
+while(i<=length(samples)){
+  tempkeep=similaritytable[similaritytable$Group==samples[i],]
+  tempkeep=tempkeep[tempkeep$distance==min(tempkeep$distance),]
+  keep=rbind(keep,tempkeep)
+  i=i+1
+}
+
+trim=c(rep(0,42))
+i=1
+while(i<15){
+  trim=trim+(groups$Group==keep[i,1]&groups$Replicate==keep[i,3])
+  trim=trim+(groups$Group==keep[i,1]&groups$Replicate==keep[i,4])
+  i=i+1
+}
+
+trim=trim==1
+
+```
+
+
+```{r}
+plotorder=c(1:3,NA,4:6,NA,7:9,NA,10:12,NA,13:15,NA,16:18,NA,19:21,NA,22:24,NA,25:27,NA,28:30,NA,31:33,NA,34:36,NA,37:39,NA,40:42)
+
+
+heightdata=similaritytable$distance[plotorder]
+similaritytable$Outlier="firebrick"
+similaritytable[row.names(keep),"Outlier"]="dodgerblue"
+barcol=similaritytable$Outlier[plotorder]
+barnames=paste(similaritytable$Group,similaritytable$Replicate)[plotorder]
+
+```
+
+```{r fig.height=5,fig.width=10}
+barplot(height=heightdata, names.arg = barnames,las=2,col=barcol, ylab="MDS Distance Between Biological Replicates")
+legend("topright",legend = c("Least Similar","Most Similar"),fill=c("firebrick","dodgerblue"))
+
+```
+
+
+```{r}
+
+groups$trim="remove"
+groups$trim[trim]="keep"
+##write.csv(groups,"/GitHub/Santiago-et-al-2021-BMC-Genomics/Full Count Table Meta Data.csv")
+
+```
