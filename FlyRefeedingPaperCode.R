@@ -1,3 +1,136 @@
+library(parallel)
+library(BiocParallel)
+library(DESeq2)
+library(compiler)
+library(SummarizedExperiment)
+
+##MDS distance matrix to exclude outlier replicate libraries
+counts=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Full%20Count%20Table.csv",row.names=1)
+groups=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Full%20Count%20Table%20Meta%20Data.csv",row.names=1)
+counts=counts[,row.names(groups)]
+
+##Generating filter vector called trim that removes the most outlying replicate from each treatment group
+##Using distance between libraries in an MDS plot to determine which library 
+
+##uses the edger function that is defined below (needs to be ran before using) to trim out the genes with low read counts
+x<-DGEList(counts[,row.names(groups)])
+geneid <- rownames(x)
+x$samples=cbind(x$samples,groups)
+
+##at least is the cpm of a gene with 10 reads
+##10/smallest library size=x/1 000 000
+##10 000 000/smallest library size = x = smallest acceptable cpm for a gene to be kept
+atleast=(10000000/min(x$samples$lib.size))
+keep=rowSums(cpm(x)>=atleast)>=3
+y=x[keep, ,keep.lib.sizes=FALSE]
+z <- calcNormFactors(y, method = "TMM") 
+
+MDSdata=z$counts
+MDSgroups=groups
+
+lcpm=cpm(MDSdata,log=TRUE)
+colors=factor(groups$Group)
+label=groups$Group
+levels(colors)=c(1:length(levels(colors)))
+temp=plotMDS(lcpm, col=as.vector(colors),labels=label,gene.selection="pairwise",top=nrow(lcpm))
+
+similarity=temp$distance.matrix
+samples=unique(groups$Group)
+
+similaritytable=groups[,c(6,5)]
+similaritytable$rep1=c(rep(c(1,1,2),14))
+similaritytable$rep2=c(rep(c(2,3,3),14))
+similaritytable$Replicate=c(rep(c("1~2","1~3","2~3"),14))
+similaritytable$distance=0
+i=1
+j=1
+while(i<=length(samples)){
+  coords=groups$Group==samples[i]
+  temp=similarity[coords,coords]
+  similaritytable$distance[j]=temp[2,1]
+  j=j+1
+  similaritytable$distance[j]=temp[3,1]
+  j=j+1
+  similaritytable$distance[j]=temp[3,2]
+  j=j+1
+  i=i+1
+}
+
+tempkeep=similaritytable[similaritytable$Group==samples[1],]
+tempkeep=tempkeep[tempkeep$distance==min(tempkeep$distance),]
+keep=tempkeep
+i=2
+while(i<=length(samples)){
+  tempkeep=similaritytable[similaritytable$Group==samples[i],]
+  tempkeep=tempkeep[tempkeep$distance==min(tempkeep$distance),]
+  keep=rbind(keep,tempkeep)
+  i=i+1
+}
+
+trim=c(rep(0,42))
+i=1
+while(i<15){
+  trim=trim+(groups$Group==keep[i,1]&groups$Replicate==keep[i,3])
+  trim=trim+(groups$Group==keep[i,1]&groups$Replicate==keep[i,4])
+  i=i+1
+}
+
+trim=trim==1
+names(trim)=groups$Group
+
+################
+################
+
+##ImpulseDE2
+i=1
+while(i <= length(list.files("/Users/johncsantiago/Documents/ImpulseDE2/ImpulseDE2/R/"))){
+  source(paste("/Users/johncsantiago/Documents/ImpulseDE2/ImpulseDE2/R/",list.files("/Users/johncsantiago/Documents/ImpulseDE2/ImpulseDE2/R/")[i],sep="")) 
+  i=i+1
+}
+
+
+counts=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Full%20Count%20Table.csv",row.names=1)
+groups=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Full%20Count%20Table%20Meta%20Data.csv",row.names=1)
+counts=counts[,row.names(groups)]
+counts=counts[,trim]
+groups=groups[trim,]
+order=c(1:4,7:8,11:12,1:2,5:6,9:10,13:14,15:18,21:22,25:26,15:16,19:20,23:24,27:28)
+counts=counts[,order]
+groups=groups[order,]
+genotype=substr(groups$Mito,1,1)=="O"
+counts=counts[,genotype]
+groups=groups[genotype,]
+
+counts=as.matrix(counts[1:100,])
+
+##Comparing Control to Rapamycin treated
+counts=counts[,groups$Mito=="OreR"]
+groups=groups[groups$Mito=="OreR",]
+groups[,"Condition"]=c(rep("control",8),rep("case",8))
+groups[,"Sample"]=colnames(counts)
+groups[,"Time"]=c(1,1,2,2,3,3,4,4,1,1,2,2,3,3,4,4)
+groups[,"Batch"]=c(rep(c(1,2),8))
+row.names(groups)=groups$Sample
+groups=groups[,c(1,7,4,9)]
+
+##running impulse de2 without including transiently expressed genes
+objectImpulseDE2 <- runImpulseDE2(
+  matCountData    = counts, 
+  dfAnnotation    = groups,
+  boolCaseCtrl    = TRUE,
+  vecConfounders  = NULL,
+  scaNProc        = 1 )
+
+
+##write.csv(objectImpulseDE2$dfImpulseDE2Results,"SingleCountOreRCC_TrimmedLibraries_ImpulseDEResuults.csv")
+oocc=read.csv("SingleCountOreRCC_TrimmedLibraries_ImpulseDEResuults.csv",row.names=1)
+
+
+
+
+
+
+
 colnames(cpmdata)=groups[colnames(cpmdata), "Group"]
 
 heatmaply(cpmdata[cluster5,c(1:4,7,8,11,12,15:18,21,22,25,26,1,2,5,6,9,10,13,14,15,16,19,20,23,24,27,28)], scale="row",Colv = FALSE)
@@ -6,17 +139,15 @@ colnames(cpmdata)=groups[colnames(cpmdata), "Group"]
 heatmaply(cpmdata[intersect(cluster5,row.names(cpmdata)),c(1:3,7:9,13:15,19:21,22:24,28:30,34:36,40:42)], scale="row",Colv = FALSE)
 
 
-ywd="/Users/johncsantiago/Google Drive File Stream/My Drive/Santiago_RandLab_DigitalNotebook/FlyRefeedingPaper/"
+ywd="/Users/johncsantiago/Google Drive/My Drive/Santiago_RandLab_DigitalNotebook/FlyRefeedingPaper/"
 setwd(ywd)
+
 boxplot(as.numeric(cpmdata["FBgn0003651",])~groups$Group, main="svp")
 cpmdata=read.csv("SingleCountReads_NormalizedCPM.csv",row.names=1)
 groups=read.csv("SingleCountReads_Metadata.csv",row.names=1)
 
 so1=read.csv("/Users/johncsantiago/Google Drive File Stream/My Drive/Santiago_RandLab_DigitalNotebook/Thesis Files/Chapter 1/GenomeBiologyPaper/Supplementary/Table S2J SO1HR.SO0HC.csv",row.names=1)
 
-singlecounts=read.csv("CombinedCountTable_SingleReadOnly.csv",row.names=1)
-groups=read.csv("Fly_Combined_Count_Table_Metadata.csv")
-singlecounts=singlecounts
 groups=groups
 groups=as.matrix(groups)
 groups=as.data.frame(groups)
@@ -2679,6 +2810,15 @@ counts=read.csv("SingleCountReads.csv",row.names=1)
 groups=read.csv("SingleCountReads_Metadata.csv",row.names=1)
 counts=counts[,c(1:4,7:8,11:12,1:2,5:6,9:10,13:14,15:18,21:22,25:26,15:16,19:20,23:24,27:28)]
 groups=groups[c(1:4,7:8,11:12,1:2,5:6,9:10,13:14,15:18,21:22,25:26,15:16,19:20,23:24,27:28),]
+
+counts=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Full%20Count%20Table.csv",row.names=1)
+groups=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Full%20Count%20Table%20Meta%20Data.csv",row.names=1)
+counts=counts[,row.names(groups)]
+counts=counts[,trim]
+groups=groups[trim,]
+order=c(1:4,7:8,11:12,1:2,5:6,9:10,13:14,15:18,21:22,25:26,15:16,19:20,23:24,27:28)
+counts=counts[,order]
+groups=groups[order,]
 genotype=substr(groups$Mito,1,1)=="O"
 counts=counts[,genotype]
 groups=groups[genotype,]
@@ -2692,7 +2832,7 @@ groups[,"Sample"]=colnames(counts)
 groups[,"Time"]=c(1,1,2,2,3,3,4,4,1,1,2,2,3,3,4,4)
 groups[,"Batch"]=c(rep(c(1,2),8))
 row.names(groups)=groups$Sample
-groups=groups[,c(1,7,4,8)]
+groups=groups[,c(1,7,4,9)]
 
 ##running impulse de2 without including transiently expressed genes
 objectImpulseDE2 <- runImpulseDE2(
