@@ -1,3 +1,12 @@
+##ImpulseDE2 output tables
+oocc=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3E%20OOC-OOR.csv",row.names=1)
+oorapa=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3B%20OOR.csv",row.names=1)
+oocontrol=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3A%20OOC.csv",row.names=1)
+socc=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3F%20SOC-SOR.csv",row.names=1)
+sorapa=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3D%20SOR.csv",row.names=1)
+socontrol=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3C%20SOC.csv",row.names=1)
+oocsoc=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3G%20OOC-SOC.csv",row.names=1)
+oorsor=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3H%20OOR-SOR.csv",row.names=1)
 
 ##ImpulseDE2 output tables with significant genes only
 OCSC=na.omit(oocsoc[oocsoc$padj<.05,])
