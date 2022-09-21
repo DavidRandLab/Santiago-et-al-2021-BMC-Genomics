@@ -1,6 +1,9 @@
 ###############################################################################
 #### Heatmap of sig. DEGs in OXPHOS KEGG categories
 ###############################################################################
+library(KEGGREST)
+library(gplots)
+
 ##ID conversion table
 convert=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FBgnConversionTable.csv",row.names=1)
 
@@ -41,6 +44,10 @@ heatmapped=heatmap.2(as.matrix(hmdata),Rowv=F,Colv=F,RowSideColors = hmcolors,tr
 ##gets the mean cluster data for line plots
 rawclusterdata=as.matrix(clusterdata[OXPHOS,])
 rawclusterdata=rawclusterdata[rawclusterdata[,"Cluster"]==1,]
+temp=convert$Symbol
+names(temp)=convert$original.FBgn
+temp=temp[row.names(rawclusterdata)]
+rawclusterdata=hmdata[temp,]
 OOC=c(mean(rawclusterdata[,1]),mean(rawclusterdata[,2]),mean(rawclusterdata[,3]),mean(rawclusterdata[,4]))
 OOR=c(mean(rawclusterdata[,5]),mean(rawclusterdata[,6]),mean(rawclusterdata[,7]),mean(rawclusterdata[,8]))
 SOC=c(mean(rawclusterdata[,9]),mean(rawclusterdata[,10]),mean(rawclusterdata[,11]),mean(rawclusterdata[,12]))
@@ -83,8 +90,12 @@ axis(1,at=c(12.5),labels=c("sm21;OreR"),padj=4,tick=F,col.axis="black")
 #### Figure 3C
 ##Cluster Line Graph
 ##gets the mean cluster data for line plots
-rawclusterdata=as.matrix(clusterdata[OXPHOS.DEGs,])
+rawclusterdata=as.matrix(clusterdata[OXPHOS,])
 rawclusterdata=rawclusterdata[rawclusterdata[,"Cluster"]==5,]
+temp=convert$Symbol
+names(temp)=convert$original.FBgn
+temp=temp[row.names(rawclusterdata)]
+rawclusterdata=hmdata[temp,]
 OOC=c(mean(rawclusterdata[,1]),mean(rawclusterdata[,2]),mean(rawclusterdata[,3]),mean(rawclusterdata[,4]))
 OOR=c(mean(rawclusterdata[,5]),mean(rawclusterdata[,6]),mean(rawclusterdata[,7]),mean(rawclusterdata[,8]))
 SOC=c(mean(rawclusterdata[,9]),mean(rawclusterdata[,10]),mean(rawclusterdata[,11]),mean(rawclusterdata[,12]))
@@ -94,7 +105,7 @@ timelabs=c("0H", "1H", "2H", "4H")
 dev.new()
 i=1
 plot(x=c(1:4),rawclusterdata[i,c(1:4)],type="l",col="grey", ylim=c(min(rawclusterdata[,c(1:14)]),max(rawclusterdata[,c(1:14)])),ylab="log Fold Change from the Mean",xaxt="n",xlim=c(1,16),xlab="")
-title(main="Cluster 5 Data")
+title(main="Cluster 1 Data")
 title(xlab="Samples Over Time",line=4) 
 i=i+1
 while(i<=NROW(rawclusterdata)){
@@ -123,4 +134,3 @@ axis(1,at=c(10.5),labels=c("Control"),padj=2,tick=F,col.axis="blue")
 axis(1,at=c(14.5),labels=c("Rapamycin"),padj=2,tick=F,col.axis="red")
 axis(1,at=c(4.55),labels=c("OreR;OreR"),padj=4,tick=F,col.axis="black")
 axis(1,at=c(12.5),labels=c("sm21;OreR"),padj=4,tick=F,col.axis="black")
-

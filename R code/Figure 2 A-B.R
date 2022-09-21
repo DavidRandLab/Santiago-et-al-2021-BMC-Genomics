@@ -1,14 +1,19 @@
-library(MBCluster.Seq)
+##MBCluster.seq is depricated, use source files below
+##library(MBCluster.Seq)
 library(edgeR)
+
+## loads the raw source code for MBCluster.seq from github
 source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/Output.r")
 source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/KmeansPlus.r")
 source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/LGLK.r")
 source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/Cluster.r")
 source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/Math.r")
-##source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/HybridTree-KM.r")
 source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/Tree.r")
 source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/Distance.r")
+source("https://raw.githubusercontent.com/cran/MBCluster.Seq/master/R/Estimation.r")
 
+##ID conversion table
+convert=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FBgnConversionTable.csv",row.names=1)
 ## Count table and groups with outlier libraries removed
 counts=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Trimmed.Counts.csv",row.names=1)
 groups=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Trimmed.Groups.csv",row.names=1)
@@ -46,7 +51,6 @@ atleast=(10000000/min(x$samples$lib.size))
 keep=rowSums(cpm(x)>=atleast)>=3
 y=x[keep, ,keep.lib.sizes=FALSE]
 z <- calcNormFactors(y, method = "TMM") 
-cpm=cpm(z)
 
 ###############################################################################
 #### run mbclusterseq on all ImpulseDE1 DEGs using CPM normalized expression data 
@@ -64,13 +68,14 @@ mbcounts=mbcounts[,order]
 mbgroups=mbgroups[order,]
 mbgroups$Time=c(rep(c(0,0,1,1,2,2,4,4),4))
 mbgroups$Treat[c(9,10,25,26)]="Rapa"
-mbgroups$Group=paste(substr(mbgroups$Sample,1,2),substr(mbgroups$Time,1,1),"H",substr(mbgroups$Treat,1,1),sep="")
+mbgroups$Group=paste(substr(row.names(mbgroups),1,2),substr(mbgroups$Time,1,1),"H",substr(mbgroups$Treat,1,1),sep="")
 GeneID=row.names(mbcounts)  
 Normalizer=mbgroups$norm.factors
-Treatment=mbgroups$Group
-Treatment=paste(substr(Treatment,1,2),substr(Treatment,5,5),substr(Treatment,3,4),sep="")
+Treatment=c(1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16)
+##Treatment=mbgroups$Group
+Count=mbcounts
 
-mydata=RNASeq.Data(mbcounts,Normalizer,Treatment,GeneID) 
+mydata=RNASeq.Data(Count,Normalizer,Treatment,GeneID) 
 
 c0=KmeansPlus.RNASeq(mydata,nK=5)$centers
 
@@ -78,18 +83,13 @@ cls=Cluster.RNASeq(data=mydata,model="nbinom",centers=c0,method="DA")$cluster
 
 tr=Hybrid.Tree(data=mydata,cluster0 =cls,model="nbinom") 
 
+##This is how Figure 2A was generated, but the cluster generation is seed dependent so can vary between runs
+##Cluster distribution is largely consistent but the cluster numbers are random
 image=plotHybrid.Tree(merge=tr,cluster=cls,logFC=mydata$logFC,tree.title=NULL,colorful=F)
-
-clusterdata=cbind(mydata[[6]],cls) 
-colnames(clusterdata)=c(levels(as.factor(Treatment)),"Cluster")
-
-dev.new(height=7.7, width=6.6, noRStudioGD = TRUE, units = "inch")
-plotHybrid.Tree(merge=tr,cluster=cls,logFC=mydata$logFC,tree.title=NULL,colorful=F)
-
-
 
 
 #### Figure 2B
+## Original MBCluster.seq output that Figure 2A was made from
 clusterdata=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/MBcluster.seq%20Output.csv",row.names=1)
 
 cluster1=clusterdata[clusterdata$Cluster==1,]
