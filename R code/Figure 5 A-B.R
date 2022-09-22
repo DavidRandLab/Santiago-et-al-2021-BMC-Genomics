@@ -1,0 +1,84 @@
+###############################################################################
+####  OXPHOS cluster gene expression levels in different tissues and dev. stages
+###############################################################################
+#### Figure 5A
+convert=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FBgnConversionTable.csv",row.names=1)
+
+kegg=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FBgn2KEGG.csv")
+
+clusterdata=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/MBcluster.seq%20Output.csv",row.names=1)
+
+OXPHOS=(kegg[grep("00190",kegg[,2]),1])
+
+##create a list of genes (FBgn ID) for the boxplot
+devstage.C1=intersect(row.names(clusterdata[clusterdata[,17]==1,]),OXPHOS)
+devstage.C5=intersect(row.names(clusterdata[clusterdata[,17]==5,]),OXPHOS)
+
+##plots the development stage specific expression for the list of genes in a heatmap
+##load the modencode data set downloadd from https://github.com/modENCODE-DCC/www/tree/master/html/docs/flyscores
+devstages=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/devstages.csv",header=T,row.names=1)
+
+##remove cell line data
+devstagesonly=devstages[,c(1:3,55,57,59,54,56,58)]
+
+##Cluster 1 Dev. stage data
+C1.devdata=matrix(rep(0,(length(devstage.C1)*6)),ncol=6)
+row.names(C1.devdata)=devstage.C1
+C1.devdata=devstagesonly[row.names(C1.devdata),4:9]
+colnames(C1.devdata)=c("M1","M5","M30","F1","F5","F30")
+boxplot(C1.devdata,main="Cluster 1",col=c(rep("dodgerblue",3),rep("firebrick",3)))
+legend("topright",legend=c("Male","Female"),fill=c("dodgerblue","firebrick"))
+
+##Cluster 5 dev stage data
+C5.devdata=matrix(rep(0,(length(devstage.C5)*6)),ncol=6)
+row.names(C5.devdata)=devstage.C5
+C5.devdata=devstagesonly[row.names(C5.devdata),4:9]
+colnames(C5.devdata)=c("M1","M5","M30","F1","F5","F30")
+boxplot(C5.devdata,main="Cluster 5",col=c(rep("dodgerblue",3),rep("firebrick",3)))
+legend("topright",legend=c("Male","Female"),fill=c("dodgerblue","firebrick"))
+
+
+#### Figure 5B
+##generates a table (exampleid) with tissue specific FPKM for each gene in the tissue1 list
+##Also generates a table (enriched) which is the FPKM normalized to the whole fly FPKM. Method is used by FlyAtlas2
+tissuedata=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FlyAtlas2Data.csv",row.names=1)
+tissueid=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FlyAtlasTissueIDKey.csv",row.names=2)
+tissuedata=na.omit(tissuedata)
+## Adult Male data
+##Cluster 1 OXPHOS genes
+AMdata=(tissueid[tissueid[,2]=="'Adult'"&tissueid[,3]=="'Male'",c(1,4)])
+C1.tissuedata=matrix(rep(0,(length(clusterdata[clusterdata[,17]==1,17])*nrow(AMdata))),ncol=nrow(AMdata))
+row.names(C1.tissuedata)=row.names(clusterdata[clusterdata[,17]==1,])
+colnames(C1.tissuedata)=AMdata[,2]
+AMdata[,1]=row.names(AMdata)
+row.names(AMdata)=AMdata[,2]
+AMdata=AMdata[colnames(C1.tissuedata),]
+i=1
+while(i<=nrow(AMdata)){
+  tempTD=tissuedata[tissuedata[,2]==AMdata[i,1],]
+  row.names(tempTD)=tempTD[,1]
+  C1.tissuedata[,i]=tempTD[row.names(C1.tissuedata),"FPKM"]
+  i=i+1
+}
+C1.tissuedata=C1.tissuedata[intersect(row.names(C1.tissuedata),OXPHOS),]
+C1.tissuedata=C1.tissuedata/C1.tissuedata[,"'Whole body'"]
+
+boxplot(C1.tissuedata,main="Cluster 1",cex.axis=.5,col="dodgerblue",las=2)
+
+##Cluster 5 OXPHOS genes
+C5.tissuedata=matrix(rep(0,(length(clusterdata[clusterdata[,17]==5,17])*nrow(AMdata))),ncol=nrow(AMdata))
+row.names(C5.tissuedata)=row.names(clusterdata[clusterdata[,17]==5,])
+colnames(C5.tissuedata)=AMdata[,2]
+i=1
+while(i<=nrow(AMdata)){
+  tempTD=tissuedata[tissuedata[,2]==AMdata[i,1],]
+  row.names(tempTD)=tempTD[,1]
+  C5.tissuedata[,i]=tempTD[row.names(C5.tissuedata),"FPKM"]
+  i=i+1
+}
+C5.tissuedata=C5.tissuedata[intersect(row.names(C5.tissuedata),OXPHOS),]
+C5.tissuedata=C5.tissuedata/C5.tissuedata[,"'Whole body'"]
+
+boxplot(C5.tissuedata,main="Cluster 5",cex.axis=.5,col="dodgerblue",las=2,ylim=c(0,8))
+
+
