@@ -1,12 +1,11 @@
 ---
-title: "Western Analysis"
+title: "Figure 1 B-E"
 author: "John Santiago"
-date: "11/6/2020"
 output: html_document
 ---
 
 ---
-title: "OreR;OreR Control Response BMC Revisions"
+title: "Santiago 2021 Figure 1"
 author: "John Santiago"
 output: html_document
 ---
@@ -15,43 +14,12 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-```{r fig.height=5,fig.width=9,align="right"}
-west=read.csv("/Users/johncsantiago/Google Drive File Stream/My Drive/Sanders Lab Files/Santiago Manuscripts/GenomeBiologyPaper/Revisions/P70S6 Western Blot Data Normalized.csv")
-##par(mfrow=c(2,1))
-temporder=c(1:6,10:12,16:18,
-            28:33,37:39,43:45,
-            7:9,13:15,19:21
-            ,34:36,40:42,46:48)
-##temporder=c(temporder,(temporder+18),(temporder+36))
-temp=west$S6.Actin[temporder]
-tempsample=factor(west$Sample[temporder], levels= west$Sample[c(1,4,10,16,28,31,37,43,7,13,19,34,40,46)])
-boxplot(temp~tempsample,col=c(rep("blue",4),rep("red",4),rep("blue",3),rep("red",3)),ylab="P70S6K/Actin",xlab="",cex.lab=1,names=c("Fasted","1H", "2H","4H", "Fasted","1H", "2H","4H","1H", "2H","4H","1H", "2H","4H"),cex.axis=1,ylim=c(0,1))
-axis(1,at=c(2.5),labels=c("Ore;OreR Control"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-axis(1,at=c(6.5),labels=c("sm21;OreR Control"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-axis(1,at=c(10),labels=c("Ore;OreR Rapa"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-axis(1,at=c(13),labels=c("sm21;OreR Rapa"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-points(x= c(2,4,6,7,8),y=c(.6,1,.65,.7,.9),pch=8,cex=1)
-legend("topright",legend=c("OreR;OreR","sm21;OreR","p < .05"),col=c("blue","red","black"),pch=c(20,20,8))
-```
-
-
-```{r fig.height=5,fig.width=9,align="right"}
-temp=west$Norm.S6.Actin[temporder]
-tempsample=factor(west$Sample[temporder], levels= west$Sample[c(1,4,10,16,28,31,37,43,7,13,19,34,40,46)])
-boxplot(temp~tempsample,col=c(rep("blue",4),rep("red",4),rep("blue",3),rep("red",3)),ylab="P70S6K/Actin",xlab="",cex.lab=1,names=c("Fasted","1H", "2H","4H", "Fasted","1H", "2H","4H","1H", "2H","4H","1H", "2H","4H"),cex.axis=1,ylim=c(0,4.5))
-axis(1,at=c(2.5),labels=c("Ore;OreR Control"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-axis(1,at=c(6.5),labels=c("sm21;OreR Control"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-axis(1,at=c(10),labels=c("Ore;OreR Rapa"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-axis(1,at=c(13),labels=c("sm21;OreR Rapa"),padj=2.5,tick=F,col.axis="black",cex.axis=1)
-points(x= c(2,3,4,6,7,8),y=c(2.5,2.4,4.3,2.5,3.2,4),pch=8,cex=1)
-points(x= c(2,3,4,6,7,8),y=c(2.5,2.4,4.3,2.5,3.2,4),pch=3,cex=1)
-legend("topright",legend=c("OreR;OreR","sm21;OreR","p < .05"),col=c("blue","red","black"),pch=c(20,20,8))
-
-
-```
+<br  /><br  /><br  />
+***Figure 1B***<br  />
+Western Blot Analysis
 
 ```{r fig.height=5,fig.width=15,align="right"}
-west=read.csv("/Users/johncsantiago/Google Drive File Stream/My Drive/Sanders Lab Files/Santiago Manuscripts/GenomeBiologyPaper/Revisions/P70S6 Western Blot Data Normalized.csv")
+west=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/P70S6%20Western%20Blot%20Data%20Normalized.csv")
 ##par(mfrow=c(2,1))
 temporder=c(1:6,10:12,16:18,
             28:33,37:39,43:45,
@@ -73,3 +41,60 @@ points(x= c(2,4,6,7,8),y=c(.6,1,.65,.7,.9),pch=8,cex=1)
 legend("topright",legend=c("OreR;OreR","sm21;OreR"),col=c("blue","red"),pch=20)
 ```
 
+```{r}
+##ImpulseDE2 output tables
+oocc=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3E%20OOC-OOR.csv",row.names=1)
+oorapa=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3B%20OOR.csv",row.names=1)
+oocontrol=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3A%20OOC.csv",row.names=1)
+socc=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3F%20SOC-SOR.csv",row.names=1)
+sorapa=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3D%20SOR.csv",row.names=1)
+socontrol=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3C%20SOC.csv",row.names=1)
+oocsoc=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3G%20OOC-SOC.csv",row.names=1)
+oorsor=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/ImpulseDE%20Outputs/Table%20S3H%20OOR-SOR.csv",row.names=1)
+
+##ImpulseDE2 output tables with significant genes only
+OCSC=na.omit(oocsoc[oocsoc$padj<.05,])
+ORSR=na.omit(oorsor[oorsor$padj<.05,])
+OO=na.omit(oocc[oocc$padj<.05,])
+SO=na.omit(socc[socc$padj<.05,])
+SOR=na.omit(sorapa[sorapa$padj<.05,])
+SOC=na.omit(socontrol[socontrol$padj<.05,])
+OOR=na.omit(oorapa[oorapa$padj<.05,])
+OOC=na.omit(oocontrol[oocontrol$padj<.05,])
+```
+
+<br  /><br  /><br  />
+***Figure 1C***<br  />
+Total ImpulseDE differentially expressed genes differentially expressed in each condition
+```{r}
+numgene=c(nrow(OOC),nrow(OOR),nrow(SOC),nrow(SOR))
+barplot(numgene,col =c(rep("blue",2),rep("red",2)),ylab="Total Genes",ylim=c(0,5000),
+        main="Total Genes Differentially Expressed\nIn Each Condition")
+axis(1,seq(-1,17),lwd.ticks=0,labels=rep("",19))
+axis(1,at=c(.65,1.9,3.1,4.3),labels=c(rep(c("Control","Rapamycin"),2)),col.axis="Black",tick=F,cex=.5,padj=-1.5)
+axis(1,at=c(1.3,3.7),labels=c("OreR;OreR","sm21;OreR"),padj=.6,tick=F,cex.axis=1)
+```
+
+<br  /><br  /><br  />
+***Figure 1D***<br  />
+Total DE genes between control and rapa for each genotype
+```{r}
+numgene=c(nrow(OO),nrow(SO))
+barplot(numgene,col =c(("blue"),("red")),ylab="Total Genes",ylim=c(0,5000),
+        main="Treatment Effect")
+axis(1,seq(-1,17),lwd.ticks=0,labels=rep("",19))
+axis(1,at=c(.65,1.9),labels=c((c("OreR;OreR","sm21;OreR"))),col.axis="Black",tick=F,cex=.5,padj=-1.5)
+axis(1,at=c(1.35),labels=c("Control ~ Rapamycin"),padj=.6,tick=F,cex.axis=1)
+```
+
+<br  /><br  /><br  />
+***Figure 1E***<br  />
+Total DE genes between OreR;OreR and sm21;OreR for each treatment
+```{r}
+numgene=c(nrow(OCSC),nrow(ORSR))
+barplot(numgene,col =c(("blue"),("red")),ylab="Total Genes",ylim=c(0,5000),
+        main="Genotype Effect")
+axis(1,seq(-1,17),lwd.ticks=0,labels=rep("",19))
+axis(1,at=c(.65,1.9),labels=c((c("Control","Rapamycin"))),col.axis="Black",tick=F,cex=.5,padj=-1.5)
+axis(1,at=c(1.3),labels=c("OreR;OreR ~ sm21;OreR"),padj=.6,tick=F,cex.axis=1)
+```
