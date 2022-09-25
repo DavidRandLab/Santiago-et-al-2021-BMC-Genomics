@@ -1,11 +1,27 @@
+---
+title: "Santiago 2021 Figure 6 A-F"
+author: "John Santiago"
+output:
+  html_document:
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+library(rgl)
+knitr::opts_chunk$set(echo = FALSE, fig.align="center")
+knitr::knit_hooks$set(webgl = hook_webgl)
+```
+
+```{r, message=FALSE, warning=FALSE}
 library(visNetwork)
 library(goseq)
 library(RcisTarget)
 library(dplyr)
 library(KEGGREST)
+library(edgeR)
 
 ##Only download these files 1 time since they are very large
-##download.file("https://resources.aertslab.org/cistarget/databases/drosophila_melanogaster/dm6/flybase_r6.02/mc8nr/gene_based/dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather","/dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
+##download.file("https://resources.aertslab.org/cistarget/databases/drosophila_melanogaster/dm6/flybase_r6.02/mc8nr/gene_based/dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
 ##download.file("https://resources.aertslab.org/cistarget/motif2tf/motifs-v8-nr.flybase-m0.001-o0.0.tbl","/motifs-v8-nr.flybase-m0.001-o0.0.tbl")
 
 ##C1.KEGG.DEGs
@@ -29,15 +45,70 @@ tempkegg=as.vector(kegg[,2])
 names(tempkegg)=convert[as.vector(kegg[,1]),"Symbol"]
 kegg.sym=as.list(na.omit(tempkegg))
 
-i=1
-kegg.names=unique(substr((kegg[,2]),6,13))
-names(kegg.names)=as.vector(kegg.names)
-while(i<=length(kegg.names)){
-  kegg.names[i] <- strsplit(keggGet(kegg.names[i])[[1]]$NAME," - ")[[1]][1]
-  i=i+1
-}
+##i=1
+##kegg.names=unique(substr(kegg,6,13))
+##names(kegg.names)=as.vector(kegg.names)
+##while(i<=length(kegg.names)){
+  ##kegg.names[i] <- strsplit(keggGet(kegg.names[i])[[1]]$NAME," - ")[[1]][1]
+  ##i=i+1
+##}
+kegg.names=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/kegg.names.csv",row.names=1)
 
-#### Figure 6B
+counts=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Trimmed.Counts.csv",row.names=1)
+
+groups=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/Trimmed.Groups.csv",row.names=1)
+
+#### edgeR DEG analyses
+##normalizing data with edgeR 
+x<-DGEList(counts)
+geneid <- rownames(x)
+x$samples=cbind(x$samples,groups)
+
+##at least is the cpm of a gene with 10 reads
+##10/smallest library size=x/1 000 000
+##10 000 000/smallest library size = x = smallest acceptable cpm for a gene to be kept
+atleast=(10000000/min(x$samples$lib.size))
+keep=rowSums(cpm(x)>=atleast)>=3
+y=x[keep, ,keep.lib.sizes=FALSE]
+z <- calcNormFactors(y, method = "TMM") 
+
+cpmdata=cpm(z)
+
+temp=cpmdata[,c(1:16)]
+temp[,1]=(cpmdata[,1]+cpmdata[,2])/2
+temp[,2]=(cpmdata[,3]+cpmdata[,4])/2
+temp[,3]=(cpmdata[,7]+cpmdata[,8])/2
+temp[,4]=(cpmdata[,11]+cpmdata[,12])/2
+
+temp[,5]=(cpmdata[,1]+cpmdata[,2])/2
+temp[,6]=(cpmdata[,5]+cpmdata[,6])/2
+temp[,7]=(cpmdata[,9]+cpmdata[,10])/2
+temp[,8]=(cpmdata[,13]+cpmdata[,14])/2
+
+temp[,9]=(cpmdata[,15]+cpmdata[,16])/2
+temp[,10]=(cpmdata[,17]+cpmdata[,18])/2
+temp[,11]=(cpmdata[,21]+cpmdata[,22])/2
+temp[,12]=(cpmdata[,25]+cpmdata[,26])/2
+
+temp[,13]=(cpmdata[,15]+cpmdata[,16])/2
+temp[,14]=(cpmdata[,19]+cpmdata[,20])/2
+temp[,15]=(cpmdata[,23]+cpmdata[,24])/2
+temp[,16]=(cpmdata[,27]+cpmdata[,28])/2
+
+colnames(temp)=c("OO0HC","OO1HC","OO2HC","OO4HC",
+                 "OO0HR","OO1HR","OO2HR","OO4HR",
+                 "SO0HC","SO1HC","SO2HC","SO4HC",
+                 "SO0HR","SO1HR","SO2HR","SO4HR")
+
+mean.cpmdata=temp
+scaled.mean.cpmdata=t(scale(t(mean.cpmdata)))
+
+
+```
+
+
+
+```{r, warning = FALSE, message=FALSE, echo=FALSE, fig.show='hide'}
 Cluster1.Genes=row.names(convert[convert$cluster==1&convert$mt==0,])
 Cluster1.Genes=intersect(Cluster1.Genes,c(row.names(ORSR),row.names(OCSC)))
 
@@ -49,21 +120,28 @@ names(genes)=convert[row.names(temp.genes),"Symbol"]
 genes=(genes[-grep("jus",names(genes))[1]])
 genes=genes[na.omit(names(genes))]
 
-table(genes)
 pwf=nullp(genes,"dm3","geneSymbol")
-head(pwf)
 
 ##KEGG term enrichment is KEGG
 KEGG=goseq(pwf,gene2cat=kegg.sym)
 KEGG$adjp=p.adjust(KEGG$over_represented_pvalue,method="BH")
 row.names(KEGG)=substr(as.character(KEGG[,1]),6,13)
-KEGG$Name=kegg.names[row.names(KEGG)]
+KEGG$Name=kegg.names[row.names(KEGG),"KEGG.Name"]
 ##Remove Global and Overview Maps
 KEGG=KEGG[substr(row.names(KEGG),1,6)!="dme011",]
 Cluster1.KEGG.Table=KEGG[substr(row.names(KEGG),1,6)!="dme012",]
 sigCluster1.KEGG.Table=Cluster1.KEGG.Table[Cluster1.KEGG.Table$adjp<.05,]
+display.sigCluster1.KEGG.Table=Cluster1.KEGG.Table[Cluster1.KEGG.Table$adjp<.05,c("Name","adjp")]
+  
+##colnames(display.sigCluster1.KEGG.Table)=c("KEGG Pathway","FDR adj. p-value")
 
-#### Figure 6A
+display.sigCluster1.KEGG.Table=data.frame("KEGG Pathway"=display.sigCluster1.KEGG.Table[,1],"FDR adj. p-value"=display.sigCluster1.KEGG.Table[,2])
+```
+
+<br  /><br  /><br  />
+***Figure 6 A***<br  />
+Gene expression profile for KEGG genes in cluster 1<br  />
+```{r, warning = FALSE}
 inKegg=(kegg[,2])
 names(inKegg)=kegg[,1]
 kegg.genes=rep(0,length(Cluster1.Genes))
@@ -78,7 +156,9 @@ while(i<=nrow(sigCluster1.KEGG.Table)){
 kegg.genes=names(kegg.genes[kegg.genes==1])
 kegg.genes=intersect(kegg.genes,Cluster1.Genes)
 
-rawclusterdata=as.matrix(clusterdata[kegg.genes,])
+
+
+rawclusterdata=as.matrix(scaled.mean.cpmdata[kegg.genes,])
 OOC=c(mean(rawclusterdata[,1]),mean(rawclusterdata[,2]),mean(rawclusterdata[,3]),mean(rawclusterdata[,4]))
 OOR=c(mean(rawclusterdata[,5]),mean(rawclusterdata[,6]),mean(rawclusterdata[,7]),mean(rawclusterdata[,8]))
 SOC=c(mean(rawclusterdata[,9]),mean(rawclusterdata[,10]),mean(rawclusterdata[,11]),mean(rawclusterdata[,12]))
@@ -90,7 +170,6 @@ sdev2=c(sd(rawclusterdata[,5]),sd(rawclusterdata[,6]),sd(rawclusterdata[,7]),sd(
 sdev3=c(sd(rawclusterdata[,9]),sd(rawclusterdata[,10]),sd(rawclusterdata[,11]),sd(rawclusterdata[,12]))
 sdev4=c(sd(rawclusterdata[,13]),sd(rawclusterdata[,14]),sd(rawclusterdata[,15]),sd(rawclusterdata[,16]))
 
-dev.new()
 plot(OOC,col="blue",ylim=c((min(c(OOR,OOC,SOC,SOR))-max(c(sdev1,sdev2,sdev3,sdev4))),(max(c(OOR,OOC,SOC,SOR))+max(c(sdev1,sdev2,sdev3,sdev4)))),ylab="log Fold Change from the Mean",xaxt="n",xlim=c(1,9),xlab="",type="l",lwd=2)
 lines(x=c(6:9),OOR,type="l",col="blue",lwd=2)
 lines(x=c(1:4),SOC,type="l",col="red",lwd=2)
@@ -112,19 +191,64 @@ axis(1,at=c(6:9),labels=c(0,1,2,4),col.axis="Black")
 
 axis(1,at=c(2.5),labels=c("Control"),padj=2,tick=F,col.axis="black")
 axis(1,at=c(7.5),labels=c("Rapamycin"),padj=2,tick=F,col.axis="black")
-legend("topleft",legend = c("OreR;OreR","sm21:OreR"),fill = c("blue","red"),cex = .5)
+legend("topright",legend = c("OreR;OreR","sm21:OreR"),fill = c("blue","red"),cex = .5,bty="n")
 abline(h=0,lty=2)
+```
 
-#### Figure 6C
+
+
+```{r, warning = FALSE, message=FALSE, echo=FALSE, fig.show='hide'}
+Cluster5.Genes=row.names(convert[convert$cluster==5&convert$mt==0,])
+Cluster5.Genes=intersect(Cluster5.Genes,c(row.names(ORSR),row.names(OCSC)))
+
+temp.genes=cpm
+temp.genes[,1]=0
+temp.genes[Cluster5.Genes,1]=1
+genes=temp.genes[,1]
+names(genes)=convert[row.names(temp.genes),"Symbol"]
+genes=(genes[-grep("jus",names(genes))[1]])
+genes=genes[na.omit(names(genes))]
+
+pwf=nullp(genes,"dm3","geneSymbol")
+
+##KEGG term enrichment is KEGG
+KEGG=goseq(pwf,gene2cat=kegg.sym)
+KEGG$adjp=p.adjust(KEGG$over_represented_pvalue,method="BH")
+row.names(KEGG)=substr(as.character(KEGG[,1]),6,13)
+KEGG$Name=kegg.names[row.names(KEGG),"KEGG.Name"]
+##Remove Global and Overview Maps
+KEGG=KEGG[substr(row.names(KEGG),1,6)!="dme011",]
+Cluster5.KEGG.Table=KEGG[substr(row.names(KEGG),1,6)!="dme012",]
+sigCluster5.KEGG.Table=Cluster5.KEGG.Table[Cluster5.KEGG.Table$adjp<.05,]
+display.sigCluster5.KEGG.Table=Cluster5.KEGG.Table[Cluster5.KEGG.Table$adjp<.05,c("Name","adjp")]
+  
+##colnames(display.sigCluster1.KEGG.Table)=c("KEGG Pathway","FDR adj. p-value")
+
+display.sigCluster5.KEGG.Table=data.frame("KEGG Pathway"=display.sigCluster5.KEGG.Table[,1],"FDR adj. p-value"=display.sigCluster5.KEGG.Table[,2])
+```
+
+<br  /><br  /><br  />
+***Figure 6 B***<br  />
+Table of enriched KEGG pathways in the cluster 1 geneset<br  />
+```{r}
+display.sigCluster1.KEGG.Table
+```
+
+<br  /><br  /><br  />
+***Figure 6 C***<br  />
+Network diagram of cluster 1 genes associated with enriched KEGG pathways or the transcription factor Abd-B<br  />
+```{r}
 ##RcisTarget to get enriched TFs
-data(motifAnnotations_dmel_v8)
-motifRankings = importRankings("dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
+##This is the code that was used to perform the TF analysis but is currently lacking the motifRankings file due to a servererror
 
-gs=convert[kegg.genes,"Symbol"]
+##data(motifAnnotations_dmel_v8)
+##motifRankings = importRankings("dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
 
-motifEnrichmentTable_wGenes <- cisTarget(gs, motifRankings, motifAnnot=motifAnnotations_dmel_v8)
+##gs=convert[kegg.genes,"Symbol"]
 
-motifs_AUC <- calcAUC(gs, motifRankings, nCores=1)
+##motifEnrichmentTable_wGenes <- cisTarget(gs, motifRankings, motifAnnot=motifAnnotations_dmel_v8)
+
+##motifs_AUC <- calcAUC(gs, motifRankings, nCores=1)
 
 ##RcisTarget output to setup edge table for visnetwork
 tfvar = read.csv("/Users/johncsantiago/Documents/GitHub/Santiago-et-al-2021-BMC-Genomics/Data Files/Cluster 1 TF Analysis.csv",row.names=1)
@@ -178,7 +302,7 @@ i=1
 while(i<=length(kegg.genes)){
   temp=intersect(kegg[grep(kegg.genes[i],(kegg[,1])),2],sigCluster1.KEGG.Table$category)
   to=c(to,convert[rep(kegg.genes[i],length(temp)),"Symbol"])
-  from=c(from,as.vector(kegg.names[substr(temp,6,13)]))
+  from=c(from,as.vector(kegg.names[substr(temp,6,13),2]))
   i=i+1
 }
 
@@ -198,7 +322,9 @@ nodes <- data.frame(id=c(genes, motifs),
                     shape=c(rep("dot", length(genes)), rep("star", length(motifs))),
                     color=c(rep("grey",9),edgecolors))
 nodes$group=c(abdorno,"Abd-B",rep("KEGG Pathway",8))
+```
 
+```{r}
 visnet.cluster1=visNetwork(nodes[,c(1:3,6)], edges[,c(1:2)]) %>%
   visNodes(font=list(color="black",size=60),mass=3.5) %>%
   visOptions(highlightNearest = TRUE,nodesIdSelection = TRUE)
@@ -208,34 +334,15 @@ visnet.cluster1=visGroups(visnet.cluster1, groupname = "Abd-B", shape = "box", c
 visnet.cluster1=visGroups(visnet.cluster1, groupname = "Inferred Abd-B Target", shape = "dot", color = list(background = '#F8253D', border="black"))
 visnet.cluster1=visGroups(visnet.cluster1, groupname = "Not Abd-B Target", shape = "dot", color = list(background = '#FFC942', border="black"))
 visLegend(visnet.cluster1, main="Legend", position="right", ncol=1,width=.1) 
+```
 
 
-#### Figure 6E
-Cluster5.Genes=row.names(convert[convert$cluster==5&convert$mt==0,])
-Cluster5.Genes=intersect(Cluster5.Genes,c(row.names(ORSR),row.names(OCSC)))
-temp.genes=cpm
-temp.genes[,1]=0
-temp.genes[Cluster5.Genes,1]=1
-genes=temp.genes[,1]
-names(genes)=convert[row.names(temp.genes),"Symbol"]
-genes=(genes[-grep("jus",names(genes))[1]])
-genes=genes[na.omit(names(genes))]
 
-table(genes)
-pwf=nullp(genes,"dm3","geneSymbol")
-head(pwf)
 
-##KEGG term enrichment is KEGG
-KEGG=goseq(pwf,gene2cat=kegg.sym)
-KEGG$adjp=p.adjust(KEGG$over_represented_pvalue,method="BH")
-row.names(KEGG)=substr(as.character(KEGG[,1]),6,13)
-KEGG$Name=kegg.names[row.names(KEGG)]
-##Remove Global and Overview Maps
-KEGG=KEGG[substr(row.names(KEGG),1,6)!="dme011",]
-Cluster5.KEGG.Table=KEGG[substr(row.names(KEGG),1,6)!="dme012",]
-sigCluster5.KEGG.Table=Cluster5.KEGG.Table[Cluster5.KEGG.Table$adjp<.05,]
-
-#### Figure 6D
+<br  /><br  /><br  />
+***Figure 6 D***<br  />
+Gene expression profile for KEGG genes in cluster 5<br  />
+```{r, warning = FALSE}
 inKegg=(kegg[,2])
 names(inKegg)=kegg[,1]
 kegg.genes=rep(0,length(Cluster5.Genes))
@@ -250,8 +357,9 @@ while(i<=nrow(sigCluster5.KEGG.Table)){
 kegg.genes=names(kegg.genes[kegg.genes==1])
 kegg.genes=intersect(kegg.genes,Cluster5.Genes)
 
-rawclusterdata=as.matrix(clusterdata[kegg.genes,])
 
+
+rawclusterdata=as.matrix(scaled.mean.cpmdata[kegg.genes,])
 OOC=c(mean(rawclusterdata[,1]),mean(rawclusterdata[,2]),mean(rawclusterdata[,3]),mean(rawclusterdata[,4]))
 OOR=c(mean(rawclusterdata[,5]),mean(rawclusterdata[,6]),mean(rawclusterdata[,7]),mean(rawclusterdata[,8]))
 SOC=c(mean(rawclusterdata[,9]),mean(rawclusterdata[,10]),mean(rawclusterdata[,11]),mean(rawclusterdata[,12]))
@@ -263,7 +371,6 @@ sdev2=c(sd(rawclusterdata[,5]),sd(rawclusterdata[,6]),sd(rawclusterdata[,7]),sd(
 sdev3=c(sd(rawclusterdata[,9]),sd(rawclusterdata[,10]),sd(rawclusterdata[,11]),sd(rawclusterdata[,12]))
 sdev4=c(sd(rawclusterdata[,13]),sd(rawclusterdata[,14]),sd(rawclusterdata[,15]),sd(rawclusterdata[,16]))
 
-dev.new()
 plot(OOC,col="blue",ylim=c((min(c(OOR,OOC,SOC,SOR))-max(c(sdev1,sdev2,sdev3,sdev4))),(max(c(OOR,OOC,SOC,SOR))+max(c(sdev1,sdev2,sdev3,sdev4)))),ylab="log Fold Change from the Mean",xaxt="n",xlim=c(1,9),xlab="",type="l",lwd=2)
 lines(x=c(6:9),OOR,type="l",col="blue",lwd=2)
 lines(x=c(1:4),SOC,type="l",col="red",lwd=2)
@@ -285,20 +392,32 @@ axis(1,at=c(6:9),labels=c(0,1,2,4),col.axis="Black")
 
 axis(1,at=c(2.5),labels=c("Control"),padj=2,tick=F,col.axis="black")
 axis(1,at=c(7.5),labels=c("Rapamycin"),padj=2,tick=F,col.axis="black")
-legend("topleft",legend = c("OreR;OreR","sm21:OreR"),fill = c("blue","red"),cex = .5)
+legend("topright",legend = c("OreR;OreR","sm21:OreR"),fill = c("blue","red"),cex = .5,bty="n")
 abline(h=0,lty=2)
+```
 
+<br  /><br  /><br  />
+***Figure 6 E***<br  />
+Table of enriched KEGG pathways in the cluster 5 geneset<br  />
+```{r}
+display.sigCluster5.KEGG.Table
+```
 
-#### Figure 6F
+<br  /><br  /><br  />
+***Figure 6 F***<br  />
+Network diagram of cluster 5 genes associated with enriched KEGG pathways,the transcription factor Dref or the transcription factor gt<br  />
+```{r}
 ##RcisTarget to get enriched TFs
-data(motifAnnotations_dmel_v8)
-motifRankings = importRankings("dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
+##This is the code that was used to perform the TF analysis but is currently lacking the motifRankings file due to a servererror
 
-gs=convert[kegg.genes,"Symbol"]
+##data(motifAnnotations_dmel_v8)
+##motifRankings = importRankings("dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
 
-motifEnrichmentTable_wGenes <- cisTarget(gs, motifRankings, motifAnnot=motifAnnotations_dmel_v8)
+##gs=convert[kegg.genes,"Symbol"]
 
-motifs_AUC <- calcAUC(gs, motifRankings, nCores=1)
+##motifEnrichmentTable_wGenes <- cisTarget(gs, motifRankings, motifAnnot=motifAnnotations_dmel_v8)
+
+##motifs_AUC <- calcAUC(gs, motifRankings, nCores=1)
 
 ##Network analysis using RcisTarget output
 tfvar = read.csv("/Users/johncsantiago/Documents/GitHub/Santiago-et-al-2021-BMC-Genomics/Data Files/Cluster 5 TF Analysis.csv",row.names=1)
@@ -318,7 +437,7 @@ i=1
 while(i<=length(kegg.genes)){
   temp=intersect(kegg[grep(kegg.genes[i],(kegg)[,1]),2],sigCluster5.KEGG.Table$category)
   to=c(to,convert[rep(kegg.genes[i],length(temp)),"Symbol"])
-  from=c(from,as.vector(kegg.names[substr(temp,6,13)]))
+  from=c(from,as.vector(kegg.names[substr(temp,6,13),2]))
   i=i+1
 }
 
@@ -344,7 +463,9 @@ nodes <- data.frame(id=c(genes, motifs),
                     shape=c(rep("dot", length(genes)), rep("star", length(motifs))),
                     color=c(edgecolors,rep("grey",length(motifs))))
 nodes$group=c(TForno,"Dref","gt",rep("KEGG Pathway",9))
+```
 
+```{r}
 visnet.cluster5=visNetwork(nodes[,c(1:3,6)], edges[,c(1:2)]) %>%
   visNodes(font=list(color="black",size=60),mass=3.5) %>%
   visOptions(highlightNearest = TRUE,nodesIdSelection = TRUE)
@@ -359,3 +480,4 @@ visnet.cluster5=visGroups(visnet.cluster5, groupname = "Dref and gt Target Gene"
 visnet.cluster5=visGroups(visnet.cluster5, groupname = "Not a Dref or gt Target Gene", shape = "dot", color = list(background = '#FFC942', border="black"))
 
 visLegend(visnet.cluster5, main="Legend", position="right", ncol=1,width=.1) 
+```

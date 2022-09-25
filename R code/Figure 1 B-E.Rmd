@@ -1,11 +1,5 @@
 ---
-title: "Figure 1 B-E"
-author: "John Santiago"
-output: html_document
----
-
----
-title: "Santiago 2021 Figure 1"
+title: "Santiago 2021 Figure 1 B-E"
 author: "John Santiago"
 output: html_document
 ---

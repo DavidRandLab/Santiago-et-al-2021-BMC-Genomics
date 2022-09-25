@@ -1,7 +1,15 @@
-###############################################################################
-####  OXPHOS cluster gene expression levels in different tissues and dev. stages
-###############################################################################
-#### Figure 5A
+---
+title: "Santiago 2021 Figure 3 A-C"
+author: "John Santiago"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+
 convert=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FBgnConversionTable.csv",row.names=1)
 
 kegg=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FBgn2KEGG.csv")
@@ -9,6 +17,20 @@ kegg=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-202
 clusterdata=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/MBcluster.seq%20Output.csv",row.names=1)
 
 OXPHOS=(kegg[grep("00190",kegg[,2]),1])
+```
+
+
+<br  /><br  /><br  />
+***Figure 5 A***<br  />
+Expression level of OXPHOS genes in cluster 1 or 5 from modencode database<br  />
+```{r, warning = FALSE}
+##create a list of genes (FBgn ID) for the boxplot
+devstage.C1=intersect(row.names(clusterdata[clusterdata[,17]==1,]),OXPHOS)
+devstage.C5=intersect(row.names(clusterdata[clusterdata[,17]==5,]),OXPHOS)
+
+##plots the development stage specific expression for the list of genes in a heatmap
+##load the modencode data set downloadd from https://github.com/modENCODE-DCC/www/tree/master/html/docs/flyscores
+devstages=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/devstages.csv",header=T,row.names=1)
 
 ##create a list of genes (FBgn ID) for the boxplot
 devstage.C1=intersect(row.names(clusterdata[clusterdata[,17]==1,]),OXPHOS)
@@ -36,9 +58,12 @@ C5.devdata=devstagesonly[row.names(C5.devdata),4:9]
 colnames(C5.devdata)=c("M1","M5","M30","F1","F5","F30")
 boxplot(C5.devdata,main="Cluster 5",col=c(rep("dodgerblue",3),rep("firebrick",3)))
 legend("topright",legend=c("Male","Female"),fill=c("dodgerblue","firebrick"))
+```
 
-
-#### Figure 5B
+<br  /><br  /><br  />
+***Figure 5B***<br  />
+Expression level of OXPHOS genes in cluster 1 or 5 from FlyAtlas2 database<br  />
+```{r}
 ##generates a table (exampleid) with tissue specific FPKM for each gene in the tissue1 list
 ##Also generates a table (enriched) which is the FPKM normalized to the whole fly FPKM. Method is used by FlyAtlas2
 tissuedata=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FlyAtlas2Data.csv",row.names=1)
@@ -80,5 +105,4 @@ C5.tissuedata=C5.tissuedata[intersect(row.names(C5.tissuedata),OXPHOS),]
 C5.tissuedata=C5.tissuedata/C5.tissuedata[,"'Whole body'"]
 
 boxplot(C5.tissuedata,main="Cluster 5",cex.axis=.5,col="dodgerblue",las=2,ylim=c(0,8))
-
-
+```

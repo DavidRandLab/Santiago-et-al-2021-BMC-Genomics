@@ -1,7 +1,16 @@
-###############################################################################
-####  DEGs mapped to OXPHOS KEGG pathway colored by cluster number
-###############################################################################
+---
+title: "Santiago 2021 Figure 4"
+author: "John Santiago"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, message=FALSE, warning=FALSE}
 library(pathview)
+library(KEGGREST)
 
 ##ID conversion table
 convert=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/FBgnConversionTable.csv",row.names=1)
@@ -18,8 +27,6 @@ oorsor=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2
 OCSC=na.omit(oocsoc[oocsoc$padj<.05,])
 ORSR=na.omit(oorsor[oorsor$padj<.05,])
 
-
-#### Figure 4
 OXPHOS=(kegg[grep("00190",kegg[,2]),1])
 OXPHOS.MT=gsub("dme:","",convert[intersect(OXPHOS,convert[convert[,"mt"]==1,1]),"KEGG.ID"])
 OXPHOS.C1=gsub("dme:","",convert[intersect(row.names(clusterdata[clusterdata[,17]==1,]),OXPHOS),"KEGG.ID"])
@@ -38,8 +45,7 @@ names(temp2)=temp[1,]
 temp3=names(temp2)
 names(temp3)=temp2
 
-
-OXPHOS.C1=gsub("dme:","",convert[OXPHOS.C1,"KEGG.ID"])
+##OXPHOS.C1=gsub("dme:","",convert[OXPHOS.C1,"KEGG.ID"])
 OXPHOS.C1=temp2[OXPHOS.C1]
 OXPHOS.C5=temp2[OXPHOS.C5]
 OXPHOS.C1C5=intersect(OXPHOS.C1,OXPHOS.C5)
@@ -47,28 +53,23 @@ OXPHOS.C1=names(OXPHOS.C1)
 OXPHOS.C5=names(OXPHOS.C5)
 OXPHOS.C1C5=as.vector(temp3[OXPHOS.C1C5])
 
-download.kegg(pathway.id="00190")
+download.kegg(pathway.id="00190",species="dme")
 xml.file="dme00190.xml"
 node.data=node.info(xml.file)
-names(node.data)
 
 plot.data.gene=node.map(mol.data=OXPHOS.MT, node.data, node.types="gene")
-head(plot.data.gene)
 cols.ts.gene=node.color(plot.data.gene, limit=2, bins=2)
 cols.ts.gene[cols.ts.gene!="#FFFFFF"]="grey"
 
 plot.data.gene=node.map(mol.data=OXPHOS.C1, node.data, node.types="gene")
-head(plot.data.gene)
 cols.ts.gene.C1=node.color(plot.data.gene, limit=2, bins=2)
 cols.ts.gene[cols.ts.gene.C1!="#FFFFFF"]="firebrick2"
 
 plot.data.gene=node.map(mol.data=OXPHOS.C5, node.data, node.types="gene")
-head(plot.data.gene)
 cols.ts.gene.C5=node.color(plot.data.gene, limit=2, bins=2)
 cols.ts.gene[cols.ts.gene.C5!="#FFFFFF"]="dodgerblue"
 
 plot.data.gene=node.map(mol.data=OXPHOS.C1C5, node.data, node.types="gene")
-head(plot.data.gene)
 cols.ts.gene.C1C5=node.color(plot.data.gene, limit=2, bins=2)
 cols.ts.gene[cols.ts.gene.C1C5!="#FFFFFF"]="mediumorchid"
 
@@ -80,3 +81,13 @@ pv.pars= keggview.native(plot.data.gene=plot.data.gene,
                          cols.ts.gene=cols.ts.gene, node.data=node.data,
                          pathway.name="dme00190",
                          same.layer=T, plot.col.key=F, out.suffix = "OXPHOS.KEGG.GeneClusters")
+
+```
+
+
+<br  /><br  /><br  />
+***Figure 4***<br  />
+OXPHOS KEGG pathway mapping DEGs<br  />
+```{r, out.width = "1400px"}
+knitr::include_graphics("dme00190.OXPHOS.KEGG.GeneClusters.png")
+```

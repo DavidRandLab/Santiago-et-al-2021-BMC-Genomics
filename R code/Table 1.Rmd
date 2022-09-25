@@ -1,13 +1,9 @@
 ---
-title: "Table 1"
-author: "John Santiago"
-output: html_document
----
-
----
 title: "Santiago 2021 Table 1"
 author: "John Santiago"
-output: html_document
+output:
+  html_document:
+    df_print: kable
 ---
 
 ```{r setup, include=FALSE}
@@ -30,13 +26,14 @@ ORSR=na.omit(oorsor[oorsor$padj<.05,])
 
 kegg=keggLink("pathway","dme")
 
-i=1
-kegg.names=unique(substr(kegg,6,13))
-names(kegg.names)=as.vector(kegg.names)
-while(i<=length(kegg.names)){
-  kegg.names[i] <- strsplit(keggGet(kegg.names[i])[[1]]$NAME," - ")[[1]][1]
-  i=i+1
-}
+##i=1
+##kegg.names=unique(substr(kegg,6,13))
+##names(kegg.names)=as.vector(kegg.names)
+##while(i<=length(kegg.names)){
+  ##kegg.names[i] <- strsplit(keggGet(kegg.names[i])[[1]]$NAME," - ")[[1]][1]
+  ##i=i+1
+##}
+kegg.names=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2021-BMC-Genomics/main/Data%20Files/kegg.names.csv",row.names=1)
 
 temp=names(kegg)
 temp2=convert[convert[,5]!="",]
@@ -47,13 +44,14 @@ while(i<=nrow(temp2)){
   }
   i=i+1
 }
+
 names(kegg)=temp
 kegg=as.list(kegg)
 
 ```
 
 
-```{r, message=FALSE, warning=FALSE, fig.show = 'hide'}
+```{r, echo = FALSE, message=FALSE, warning=FALSE, fig.show = 'hide'}
 ##KEGG enrichment for OreR;OreR Rapa vs sm21;OreR Rapa
 DEGs=setdiff(row.names(ORSR),row.names(convert)[convert$mt==1])
 temp=row.names(cpm)
@@ -64,9 +62,7 @@ genes[DEGs]=1
 names(genes)=convert[names(genes),"Symbol"]
 genes=genes[na.omit(unique(names(genes)))]
 
-table(genes)
 pwf=nullp(genes,"dm3","geneSymbol")
-head(pwf)
 
 ## For GO term enrichment table
 ## Not used for table 1
@@ -77,15 +73,15 @@ head(pwf)
 KEGG=goseq(pwf,gene2cat=kegg)
 KEGG$adjp=p.adjust(KEGG$over_represented_pvalue,method="BH")
 row.names(KEGG)=substr(as.character(KEGG[,1]),6,13)
-KEGG$Name=kegg.names[row.names(KEGG)]
+KEGG$Name=kegg.names[row.names(KEGG),"KEGG.name"]
 ##Remove Global and Overview Maps
 KEGG=KEGG[substr(row.names(KEGG),1,6)!="dme011",]
 ORSR.KEGG.Table=KEGG[substr(row.names(KEGG),1,6)!="dme012",]
-sigORSR.KEGG.Table=ORSR.KEGG.Table[ORSR.KEGG.Table[,"padj"]<.05,]
+sigORSR.KEGG.Table=ORSR.KEGG.Table[ORSR.KEGG.Table[,"adjp"]<.05,]
 ```
 
 
-```{r, message=FALSE, warning=FALSE, fig.show = 'hide'}
+```{r, echo = FALSE, message=FALSE, warning=FALSE, fig.show = 'hide'}
 #### OreR;OreR Control vs sm21;OreR Control
 DEGs=setdiff(row.names(OCSC),row.names(convert)[convert$mt==1])
 temp=row.names(cpm)
@@ -96,21 +92,33 @@ genes[DEGs]=1
 names(genes)=convert[names(genes),"Symbol"]
 genes=genes[na.omit(unique(names(genes)))]
 
-table(genes)
 pwf=nullp(genes,"dm3","geneSymbol")
-head(pwf)
 
 ## Not used for table 1
 ##GO term enrichment is GO.wall
-OCSC.GO.Table=goseq(pwf,"dm3","geneSymbol")
+##OCSC.GO.Table=goseq(pwf,"dm3","geneSymbol")
 
 ##KEGG term enrichment is KEGG
 KEGG=goseq(pwf,gene2cat=kegg)
 KEGG$adjp=p.adjust(KEGG$over_represented_pvalue,method="BH")
 row.names(KEGG)=substr(as.character(KEGG[,1]),6,13)
-KEGG$Name=kegg.names[row.names(KEGG)]
+KEGG$Name=kegg.names[row.names(KEGG),"KEGG.name"]
 ##Remove Global and Overview Maps
 KEGG=KEGG[substr(row.names(KEGG),1,6)!="dme011",]
 OCSC.KEGG.Table=KEGG[substr(row.names(KEGG),1,6)!="dme012",]
+sigOCSC.KEGG.Table=OCSC.KEGG.Table[OCSC.KEGG.Table[,"adjp"]<.05,]
+```
 
+<br  /><br  /><br  />
+***Table 1***<br  />
+KEGG enrichment analysis for OreR;OreR vs sm21;OreR with or without rapamycin
+```{r}
+combined.table=data.frame("ORSR DE in Cat."= sigORSR.KEGG.Table[,"numDEInCat"], 
+                          "ORSR All in Cat."= sigORSR.KEGG.Table[,"numInCat"], 
+                          "ORSR adj p-value" = sigORSR.KEGG.Table[,"adjp"], 
+                          "OCSC DE in Cat."= OCSC.KEGG.Table[row.names(sigORSR.KEGG.Table),"numDEInCat"], 
+                          "OCSC All in Cat."= OCSC.KEGG.Table[row.names(sigORSR.KEGG.Table),"numInCat"], 
+                          "OCSC adj p-value" = OCSC.KEGG.Table[row.names(sigORSR.KEGG.Table),"adjp"])
+row.names(combined.table)=kegg.names[row.names(sigORSR.KEGG.Table),"KEGG.Name"]
+combined.table
 ```

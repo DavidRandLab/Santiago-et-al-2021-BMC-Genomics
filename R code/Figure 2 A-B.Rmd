@@ -1,14 +1,9 @@
 ---
-title: "Figure 2 A-B"
+title: "Santiago 2021 Figure 2 A-B"
 author: "John Santiago"
 output: html_document
 ---
 
----
-title: "Santiago 2021 Figure 2"
-author: "John Santiago"
-output: html_document
----
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
