@@ -1,5 +1,12 @@
 library(visNetwork)
 library(goseq)
+library(RcisTarget)
+library(dplyr)
+library(KEGGREST)
+
+##Only download these files 1 time since they are very large
+##download.file("https://resources.aertslab.org/cistarget/databases/drosophila_melanogaster/dm6/flybase_r6.02/mc8nr/gene_based/dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather","/dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
+##download.file("https://resources.aertslab.org/cistarget/motif2tf/motifs-v8-nr.flybase-m0.001-o0.0.tbl","/motifs-v8-nr.flybase-m0.001-o0.0.tbl")
 
 ##C1.KEGG.DEGs
 clusterdata=read.csv("/Users/johncsantiago/Google Drive/My Drive/Santiago_RandLab_DigitalNotebook/Thesis Files/Chapter 1/Chapter1Data/AllSignificantGenes_forcolors_MBClusterSeq_data/AllSignificantGenes_forcolors_MBClusterSeqOutput_logFCdata.csv",row.names=1)
@@ -23,7 +30,7 @@ names(tempkegg)=convert[as.vector(kegg[,1]),"Symbol"]
 kegg.sym=as.list(na.omit(tempkegg))
 
 i=1
-kegg.names=unique(substr(unlist(kegg),6,13))
+kegg.names=unique(substr((kegg[,2]),6,13))
 names(kegg.names)=as.vector(kegg.names)
 while(i<=length(kegg.names)){
   kegg.names[i] <- strsplit(keggGet(kegg.names[i])[[1]]$NAME," - ")[[1]][1]
@@ -55,7 +62,6 @@ KEGG$Name=kegg.names[row.names(KEGG)]
 KEGG=KEGG[substr(row.names(KEGG),1,6)!="dme011",]
 Cluster1.KEGG.Table=KEGG[substr(row.names(KEGG),1,6)!="dme012",]
 sigCluster1.KEGG.Table=Cluster1.KEGG.Table[Cluster1.KEGG.Table$adjp<.05,]
-
 
 #### Figure 6A
 inKegg=(kegg[,2])
@@ -110,7 +116,98 @@ legend("topleft",legend = c("OreR;OreR","sm21:OreR"),fill = c("blue","red"),cex 
 abline(h=0,lty=2)
 
 #### Figure 6C
+##RcisTarget to get enriched TFs
+data(motifAnnotations_dmel_v8)
+motifRankings = importRankings("dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
 
+gs=convert[kegg.genes,"Symbol"]
+
+motifEnrichmentTable_wGenes <- cisTarget(gs, motifRankings, motifAnnot=motifAnnotations_dmel_v8)
+
+motifs_AUC <- calcAUC(gs, motifRankings, nCores=1)
+
+##RcisTarget output to setup edge table for visnetwork
+tfvar = read.csv("/Users/johncsantiago/Documents/GitHub/Santiago-et-al-2021-BMC-Genomics/Data Files/Cluster 1 TF Analysis.csv",row.names=1)
+
+
+tfbreakdown=function(tfvar){
+  tfvar=tfvar[tfvar$TF_highConf!="",]
+  tfvar$TF_highConf=as.character(tfvar$TF_highConf)
+  i=1
+  while(i<=nrow(tfvar)){
+    tfvar$TF_highConf[i]=strsplit(as.character(tfvar$TF_highConf[i])," \\(")[[1]][1]
+    i=i+1
+  }
+  
+  temp=strsplit(as.character(tfvar$TF_highConf),"; ")
+  i=1
+  temp2=0
+  while(i<=length(temp)){
+    temp2=c(temp2,rep(i,length(temp[[i]])))
+    i=i+1
+  }
+  tfvar=tfvar[temp2,]
+  tfvar$TF_highConf=unlist(temp)
+  
+  temp=as.character(tfvar$enrichedGenes)
+  temp=strsplit(temp,";")
+  names(temp)=tfvar$TF_highConf
+  namestf=1
+  i=1
+  while(i<=length(temp)){
+    namestf=c(namestf,rep(names(temp)[i],length(temp[[i]])))
+    i=i+1
+  }
+  namestf=namestf[-1]
+  
+  temp2=matrix(0,nrow=length(unlist(temp)),ncol=2)
+  colnames(temp2)=c("Transcription Factor","Enriched Gene")
+  temp2[,1]=namestf
+  temp2[,2]=unlist(temp)
+  return(temp2)
+}
+  
+tftable=tfbreakdown(tfvar)
+Cluster1.TF.edges=tftable[tftable[,1]=="Abd-B",2]
+Cluster1.TF.edges=intersect(Cluster1.TF.edges,convert[kegg.genes,"Symbol"])
+
+from=rep("Abd-B",length(Cluster1.TF.edges))
+to=as.matrix(Cluster1.TF.edges)
+  
+i=1
+while(i<=length(kegg.genes)){
+  temp=intersect(kegg[grep(kegg.genes[i],(kegg[,1])),2],sigCluster1.KEGG.Table$category)
+  to=c(to,convert[rep(kegg.genes[i],length(temp)),"Symbol"])
+  from=c(from,as.vector(kegg.names[substr(temp,6,13)]))
+  i=i+1
+}
+
+edges=data.frame("from"=from,"to"=to)
+motifs <- unique(as.character(edges[,1]))
+genes <- unique(as.character(edges[,2]))
+edgecolors=genes
+edgecolors=rep("gray",length(genes))
+edgecolors[grep("Abd-B",edges[,1])]="red"
+abdorno=edgecolors
+abdorno[abdorno=="red"]="Inferred Abd-B Target"
+abdorno[abdorno=="gray"]="Not Abd-B Target"
+
+nodes <- data.frame(id=c(genes, motifs),   
+                    label=c(genes,motifs),   
+                    title=c(genes,motifs),
+                    shape=c(rep("dot", length(genes)), rep("star", length(motifs))),
+                    color=c(rep("grey",9),edgecolors))
+nodes$group=c(abdorno,"Abd-B",rep("KEGG Pathway",8))
+
+visnet.cluster1=visNetwork(nodes[,c(1:3,6)], edges[,c(1:2)]) %>%
+  visNodes(font=list(color="black",size=60),mass=3.5) %>%
+  visOptions(highlightNearest = TRUE,nodesIdSelection = TRUE)
+visnet.cluster1=visGroups(visnet.cluster1, groupname = "KEGG Pathway", shape = "box", color = list(background = "#FEF861", border="#E56E00"),size=70,physics=TRUE)
+
+visnet.cluster1=visGroups(visnet.cluster1, groupname = "Abd-B", shape = "box", color = list(background = '#FB699A', border='#DB0003'),size=80,physics=FALSE,mass=10)
+visnet.cluster1=visGroups(visnet.cluster1, groupname = "Inferred Abd-B Target", shape = "dot", color = list(background = '#F8253D', border="black"))
+visnet.cluster1=visGroups(visnet.cluster1, groupname = "Not Abd-B Target", shape = "dot", color = list(background = '#FFC942', border="black"))
+visLegend(visnet.cluster1, main="Legend", position="right", ncol=1,width=.1) 
 
 
 #### Figure 6E
@@ -190,3 +287,75 @@ axis(1,at=c(2.5),labels=c("Control"),padj=2,tick=F,col.axis="black")
 axis(1,at=c(7.5),labels=c("Rapamycin"),padj=2,tick=F,col.axis="black")
 legend("topleft",legend = c("OreR;OreR","sm21:OreR"),fill = c("blue","red"),cex = .5)
 abline(h=0,lty=2)
+
+
+#### Figure 6F
+##RcisTarget to get enriched TFs
+data(motifAnnotations_dmel_v8)
+motifRankings = importRankings("dm6-5kb-upstream-full-tx-11species.mc8nr.genes_vs_motifs.rankings.feather")
+
+gs=convert[kegg.genes,"Symbol"]
+
+motifEnrichmentTable_wGenes <- cisTarget(gs, motifRankings, motifAnnot=motifAnnotations_dmel_v8)
+
+motifs_AUC <- calcAUC(gs, motifRankings, nCores=1)
+
+##Network analysis using RcisTarget output
+tfvar = read.csv("/Users/johncsantiago/Documents/GitHub/Santiago-et-al-2021-BMC-Genomics/Data Files/Cluster 5 TF Analysis.csv",row.names=1)
+
+tftable=tfbreakdown(tfvar)
+
+Cluster5.Dref.edges=tftable[tftable[,1]=="Dref",2]
+Cluster5.Dref.edges=intersect(Cluster5.Dref.edges,convert[kegg.genes,"Symbol"])
+
+Cluster5.giant.edges=tftable[tftable[,1]=="gt",2]
+Cluster5.giant.edges=intersect(Cluster5.giant.edges,convert[kegg.genes,"Symbol"])
+
+from=c(rep("Dref",length(Cluster5.Dref.edges)),rep("gt",length(Cluster5.giant.edges)))
+to=as.matrix(c(Cluster5.Dref.edges,Cluster5.giant.edges))
+
+i=1
+while(i<=length(kegg.genes)){
+  temp=intersect(kegg[grep(kegg.genes[i],(kegg)[,1]),2],sigCluster5.KEGG.Table$category)
+  to=c(to,convert[rep(kegg.genes[i],length(temp)),"Symbol"])
+  from=c(from,as.vector(kegg.names[substr(temp,6,13)]))
+  i=i+1
+}
+
+edges=data.frame("from"=from,"to"=to)
+motifs <- unique(as.character(edges[,1]))
+genes <- unique(as.character(edges[,2]))
+edgecolors=c(rep("gray",length(genes)))
+names(edgecolors)=genes
+edgecolors[edges[grep("Dref",edges[,1]),2]]="blue"
+edgecolors[edges[grep("gt",edges[,1]),2]]="red"
+edgecolors[intersect(edges[grep("Dref",edges[,1]),2],edges[grep("gt",edges[,1]),2])]="purple"
+
+
+TForno=edgecolors
+TForno[edgecolors=="gray"]="Not a Dref or gt Target Gene"
+TForno[edgecolors=="blue"]="Dref Target Gene"
+TForno[edgecolors=="red"]="gt Target Gene"
+TForno[edgecolors=="purple"]="Dref and gt Target Gene"
+
+nodes <- data.frame(id=c(genes, motifs),   
+                    label=c(genes,motifs),   
+                    title=c(genes,motifs),
+                    shape=c(rep("dot", length(genes)), rep("star", length(motifs))),
+                    color=c(edgecolors,rep("grey",length(motifs))))
+nodes$group=c(TForno,"Dref","gt",rep("KEGG Pathway",9))
+
+visnet.cluster5=visNetwork(nodes[,c(1:3,6)], edges[,c(1:2)]) %>%
+  visNodes(font=list(color="black",size=60),mass=3.5) %>%
+  visOptions(highlightNearest = TRUE,nodesIdSelection = TRUE)
+
+visnet.cluster5=visGroups(visnet.cluster5, groupname = "KEGG Pathway", shape = "box", color = list(background = "#FEF861", border="#E56E00"),size=70,physics=TRUE)
+visnet.cluster5=visGroups(visnet.cluster5, groupname = "gt", shape = "box", color = list(background = '#FB699A', border='#DB0003'),size=80,physics=FALSE,mass=10)
+visnet.cluster5=visGroups(visnet.cluster5, groupname = "Dref", shape = "box", color = list(background = '#03BDF6', border='#0350F6'),size=80,physics=FALSE,mass=10)
+
+visnet.cluster5=visGroups(visnet.cluster5, groupname = "gt Target Gene", shape = "dot", color = list(background = '#F8253D', border="black"))
+visnet.cluster5=visGroups(visnet.cluster5, groupname = "Dref Target Gene", shape = "dot", color = list(background = 'dodgerblue', border="black"))
+visnet.cluster5=visGroups(visnet.cluster5, groupname = "Dref and gt Target Gene", shape = "dot", color = list(background = 'mediumorchid', border="black"))
+visnet.cluster5=visGroups(visnet.cluster5, groupname = "Not a Dref or gt Target Gene", shape = "dot", color = list(background = '#FFC942', border="black"))
+
+visLegend(visnet.cluster5, main="Legend", position="right", ncol=1,width=.1) 
