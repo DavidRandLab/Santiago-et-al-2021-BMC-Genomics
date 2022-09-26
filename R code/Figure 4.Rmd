@@ -27,10 +27,15 @@ oorsor=read.csv("https://raw.githubusercontent.com/DavidRandLab/Santiago-et-al-2
 OCSC=na.omit(oocsoc[oocsoc$padj<.05,])
 ORSR=na.omit(oorsor[oorsor$padj<.05,])
 
+c1=intersect(row.names(clusterdata[clusterdata[,17]==1,]),c(row.names(OCSC),row.names(ORSR)))
+c1=setdiff(c1,row.names(convert[convert$mt==1,]))
+c5=intersect(row.names(clusterdata[clusterdata[,17]==5,]),c(row.names(OCSC),row.names(ORSR)))
+c5=setdiff(c5,row.names(convert[convert$mt==1,]))
+
 OXPHOS=(kegg[grep("00190",kegg[,2]),1])
 OXPHOS.MT=gsub("dme:","",convert[intersect(OXPHOS,convert[convert[,"mt"]==1,1]),"KEGG.ID"])
-OXPHOS.C1=gsub("dme:","",convert[intersect(row.names(clusterdata[clusterdata[,17]==1,]),OXPHOS),"KEGG.ID"])
-OXPHOS.C5=gsub("dme:","",convert[intersect(row.names(clusterdata[clusterdata[,17]==5,]),OXPHOS),"KEGG.ID"])
+OXPHOS.C1=gsub("dme:","",convert[intersect(c1,OXPHOS),"KEGG.ID"])
+OXPHOS.C5=gsub("dme:","",convert[intersect(c5,OXPHOS),"KEGG.ID"])
 
 temp=matrix(keggGet("dme00190")[[1]]$GENE,nrow=2)
 temp2=strsplit(temp[2,],split="KO:")
@@ -42,8 +47,11 @@ while(i<=length(temp2)){
 temp2=names(temp2)
 temp2=substring(temp2,1,6)
 names(temp2)=temp[1,]
+##this is the same spot on the kegg map but it has 2 different names for the subunits
+temp2["Dmel_CG7007"]="K02155"
 temp3=names(temp2)
 names(temp3)=temp2
+
 
 ##OXPHOS.C1=gsub("dme:","",convert[OXPHOS.C1,"KEGG.ID"])
 OXPHOS.C1=temp2[OXPHOS.C1]
