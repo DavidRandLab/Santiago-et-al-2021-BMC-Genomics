@@ -13,6 +13,21 @@ knitr::knit_hooks$set(webgl = hook_webgl)
 ```
 
 ```{r, message=FALSE, warning=FALSE}
+
+list.of.packages <- c("edgeR", "KEGGREST","gplots","pathview","visNetwork","goseq","RcisTarget","dplyr")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)){
+  if (!require("BiocManager", quietly = TRUE)){
+    install.packages("BiocManager")}
+  
+  BiocManager::install("goseq")
+  BiocManager::install("KEGGREST")
+  BiocManager::install("edgeR")
+  BiocManager::install("RcisTarget")
+  install.packages("dplyr")
+  install.packages("visNetwork")
+}
+
 library(visNetwork)
 library(goseq)
 library(RcisTarget)
